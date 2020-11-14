@@ -38,6 +38,10 @@ func main() {
 	flag.BoolVar(&verboseLogging, "verbose", false, "Verbose output logging")
 	flag.Parse()
 
+	currentWaterLevel = getWaterLevelFromFile()
+	waterGaugeLevel.Set(float64(currentWaterLevel))
+	logrus.Infoln("Read water level:", currentWaterLevel)
+
 	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
 	if verboseLogging {
 		logrus.SetLevel(logrus.DebugLevel)
@@ -47,9 +51,6 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
-	// Get the current value
-	currentWaterLevel = getWaterLevelFromFile()
 
 	// Get the pin on which the NPN sensor is connected
 	npnPin := rpio.Pin(21)
@@ -98,7 +99,7 @@ func main() {
 }
 
 func writeWaterLevelToFile() {
-	logrus.Debugln("Writing water level: ", currentWaterLevel)
+	logrus.Debugln("Writing water level", currentWaterLevel, "to file", currentWaterLevelFile)
 
 	file, _ := os.Create(currentWaterLevelFile)
 
@@ -111,7 +112,6 @@ func writeWaterLevelToFile() {
 }
 
 func getWaterLevelFromFile() uint {
-	logrus.Debugln("Reading water level")
 	f, _ := os.Open(currentWaterLevelFile)
 	var waterLevel uint
 	_, _ = fmt.Fscanln(f, &waterLevel)
