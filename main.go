@@ -70,7 +70,7 @@ func main() {
 
 	defer rpio.Close()
 
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(30 * time.Second)
 	go func() {
 		for {
 			select {
@@ -88,9 +88,7 @@ func main() {
 				waterGaugeLevel.Set(float64(currentWaterLevel))
 			}
 
-			time.Sleep(500 * time.Millisecond)
-			currentWaterLevel++
-			waterGaugeLevel.Set(float64(currentWaterLevel))
+			time.Sleep(50 * time.Millisecond)
 		}
 	}()
 
@@ -100,7 +98,7 @@ func main() {
 }
 
 func writeWaterLevelToFile() {
-	logrus.Infoln("Writing water level: ", currentWaterLevel)
+	logrus.Debugln("Writing water level: ", currentWaterLevel)
 
 	file, _ := os.Create(currentWaterLevelFile)
 
@@ -108,12 +106,12 @@ func writeWaterLevelToFile() {
 
 	_, err := file.WriteString(fmt.Sprintf("%d", currentWaterLevel))
 	if err != nil {
-		logrus.Errorln("error writing string: ", err)
+		logrus.Errorln("Error writing current leve to file: ", err)
 	}
 }
 
 func getWaterLevelFromFile() uint {
-	logrus.Infoln("Reading water level")
+	logrus.Debugln("Reading water level")
 	f, _ := os.Open(currentWaterLevelFile)
 	var waterLevel uint
 	_, _ = fmt.Fscanln(f, &waterLevel)
