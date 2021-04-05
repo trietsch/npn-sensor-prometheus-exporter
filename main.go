@@ -93,7 +93,6 @@ func main() {
 				time.AfterFunc(200*time.Millisecond, increaseWaterLevelIfRequired)
 			}
 
-			logrus.Infoln(values)
 			time.Sleep(50 * time.Millisecond)
 		}
 	}()
