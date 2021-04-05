@@ -19,6 +19,7 @@ var verboseLogging bool
 
 var currentWaterLevelFile string
 var currentWaterLevel uint
+var values [3]rpio.State
 
 var (
 	registry        = prometheus.NewRegistry()
@@ -84,11 +85,15 @@ func main() {
 	go func() {
 		// Infinite loop for listening for changes
 		for {
+			values[0] = values[1]
+			values[1] = values[2]
+			values[2] = npnPin.Read()
+
 			if npnPin.EdgeDetected() {
-				currentWaterLevel++
-				waterGaugeLevel.Set(float64(currentWaterLevel))
+				time.AfterFunc(200*time.Millisecond, increaseWaterLevelIfRequired)
 			}
 
+			logrus.Infoln(values)
 			time.Sleep(50 * time.Millisecond)
 		}
 	}()
@@ -96,6 +101,16 @@ func main() {
 	logrus.Infoln("Start listening at", listenAddr)
 	http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 	logrus.Fatalln(http.ListenAndServe(listenAddr, nil))
+}
+
+func increaseWaterLevelIfRequired() {
+	// No metal detected by sensor (value 1)
+	// Metal detected by sensor (value 0)
+
+	if values[0] == 0 && values[1] == 0 && values[2] == 0 {
+		currentWaterLevel++
+		waterGaugeLevel.Set(float64(currentWaterLevel))
+	}
 }
 
 func writeWaterLevelToFile() {
